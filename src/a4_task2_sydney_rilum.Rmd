@@ -1,0 +1,54 @@
+---
+title: "Assignment 4- Task 2 Mini Exploratory Report"
+author: "Sydney Rilum"
+date: "11/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(lubridate)
+```
+
+## Introduction
+
+A 4 - 5 sentence "mini-introduction" to what this study is exploring, including basic background information about the subject, site and study (with citations as needed), and a brief overview of what is included in the exploratory report. You should probably do this last.
+
+
+## Data and Analyses
+
+A 3 - 4 sentence section in which you briefly describe the data, including citation & credit as needed, and provide an overview of the main analysis, statistical methods and tools used.
+
+```{r}
+bonanza <- read.csv(here("data", "bonanza_hares.csv"))
+```
+
+
+## Exploratory Findings
+
+### A. Annual juvenile hare trap counts
+
+
+### B. Visualize juvenile hare weights
+
+
+### C. Juvenile weight comparison (male & female snowshoe hares)
+
+
+### D. Relationship between juvenile weight & hind foot length
+
+
+## Summary
+
+Include a very short summary describing your main findings from your juvenile hares exploration (bulletpoints are fine)
+
+
+## Citations
+
+Include citations (professionally formatted), including the data citation and any other resources that were references in your mini report. 
+
+
