@@ -12,6 +12,8 @@ library(tidyverse)
 library(here)
 library(kableExtra)
 library(lubridate)
+library(ggbeeswarm)
+library(effsize)
 ```
 
 ## Introduction
@@ -33,13 +35,280 @@ bonanza <- read.csv(here("data", "bonanza_hares.csv"))
 ### A. Annual juvenile hare trap counts
 
 
+```{r}
+ann_juvenile_counts <- bonanza %>% 
+  mutate(date = mdy(date), .keep = "unused") %>% 
+  mutate(year = year(date)) %>% 
+  filter(age == "j") %>% 
+  count(year)
+
+ggplot(data = ann_juvenile_counts, aes(x = year, y = n)) +
+  geom_col(fill = "cyan4") +
+  labs(x = "Year", 
+       y = "Number of juvenile hare trappings",
+       title = "Annual juvenile hare trap counts") +
+   scale_x_continuous(breaks = c(1999, 2001, 2003, 2005, 2007, 2009, 2011)) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+**Figure 1.** 
+????????????????????????????
+Flipper length observations (mm) for nesting adults of the three penguin species (Adélie, chinstrap, and gentoo). Gold (Adélie), teal (chinstrap) and coral (gentoo) points indicate individual observations for flipper length (millimeters) of an adult nesting penguin. Box endpoints indicate the 25^th^ and 75^th^ percentile values; the black line and black point within the box indicate the median and mean value for each species, respectively. Data: Gorman et al. (2014).
+
+
 ### B. Visualize juvenile hare weights
+
+```{r}
+hare_weights <- bonanza %>% 
+  mutate(date = mdy(date), .keep = "unused") %>% 
+  mutate(year = year(date)) %>% 
+  filter(age == "j") %>% 
+  select(weight, sex, grid)
+
+# Juvenile Hare Weights by Sex and Site
+ggplot() +
+  geom_beeswarm(data = hare_weights, 
+                aes(x = sex, y = weight, color = grid),
+                size = 2,
+                alpha = 0.5) +
+  geom_boxplot(data = hare_weights,
+               aes(x = sex, y = weight),
+               alpha = 0) +
+  labs(x = "Sex", 
+       y = "Weight (g)",
+       title = "Juvenile Hare Weights by Sex and Site") +
+  facet_wrap(~grid) +
+  scale_color_manual(values = c("cornflowerblue","cyan4", "coral2")) +
+  theme_light() +
+  theme(legend.position = "none")
+
+
+
+# Juvenile Hare Weights by Sex
+hare_mean_weight_sex <- bonanza %>% 
+  mutate(date = mdy(date), .keep = "unused") %>% 
+  mutate(year = year(date)) %>% 
+  filter(age == "j") %>% 
+  select(date, year, weight, sex, grid) %>% 
+  group_by(sex) %>% 
+  summarize(mean_weight = mean(weight, na.rm = TRUE))
+
+
+ggplot() +
+  geom_beeswarm(data = hare_weights, 
+                aes(x = sex, y = weight, color = sex),
+                size = 2,
+                alpha = 0.5) +
+  geom_boxplot(data = hare_weights,
+               aes(x = sex, y = weight),
+               width = 0.3,
+               alpha = 0) +
+  geom_point(data = hare_mean_weight_sex, 
+             aes(x = sex, y = mean_weight),
+             size = 3,
+             color = "black") +
+  labs(x = "Sex", 
+       y = "Weight (g)",
+       title = "Juvenile Hare Weights by Sex") +
+  theme_light() +
+  theme(legend.position = "none")
+
+
+
+# Juvenile Hare Weights by Site
+hare_mean_weight_site <- bonanza %>% 
+  mutate(date = mdy(date), .keep = "unused") %>% 
+  mutate(year = year(date)) %>% 
+  filter(age == "j") %>% 
+  select(date, year, weight, sex, grid) %>% 
+  group_by(grid) %>% 
+  summarize(mean_weight = mean(weight, na.rm = TRUE))
+
+
+ggplot() +
+  geom_beeswarm(data = hare_weights, 
+                aes(x = grid, y = weight, color = grid),
+                size = 2,
+                alpha = 0.5) +
+  geom_boxplot(data = hare_weights,
+               aes(x = grid, y = weight),
+               width = 0.3,
+               alpha = 0) +
+  geom_point(data = hare_mean_weight_site, 
+             aes(x = grid, y = mean_weight),
+             size = 3,
+             color = "black") +
+  labs(x = "Site", 
+       y = "Weight (g)",
+       title = "Juvenile Hare Weights by Site") +
+  theme_light() +
+  theme(legend.position = "none")
+```
+
+**Figure 2.** 
+????????????????????????????
+
+
 
 
 ### C. Juvenile weight comparison (male & female snowshoe hares)
 
+Compare mean weights for juvenile male and female snowshoe hares included in this study.
+
+```{r}
+# Exploratory graphs
+hare_weights <- bonanza %>% 
+  mutate(date = mdy(date), .keep = "unused") %>% 
+  mutate(year = year(date)) %>% 
+  filter(age == "j") %>% 
+  select(weight, sex, grid)
+
+# Histograms
+ggplot(data = hare_weights, aes(x = weight)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~sex)
+
+# QQ-plots
+ggplot(data = hare_weights, aes(sample = weight)) +
+  geom_qq() +
+  facet_wrap(~sex)
+
+```
+
+
+A finalized table containing the mean, standard deviation, and sample size for male and female juvenile snowshoe hares, with a table caption (remember, this is placed *above* the table in your report)
+
+**Table 1.**
+???????
+```{r}
+# Descriptive Statistics Table
+
+hare_weight_stats <- bonanza %>% 
+  mutate(date = mdy(date), .keep = "unused") %>% 
+  mutate(year = year(date)) %>% 
+  filter(age == "j") %>% 
+  select(weight, sex) %>% 
+  group_by(sex) %>% 
+  summarize(mean_weight = mean(weight, na.rm = TRUE),
+            sd_weight = sd(weight, na.rm = TRUE),
+            sample_size = n())
+
+kbl(hare_weight_stats) %>% 
+  kable_styling()
+```
+
+
+```{r}
+# Create vectors of weight for female and male juvenile hares separately.
+
+hare_f <- hare_weights %>% 
+  filter(sex == "f") %>% 
+  pull(weight)
+
+hare_m <- hare_weights %>% 
+  filter(sex == "m") %>% 
+  pull(weight)
+
+```
+
+## T-tests, a couple different ways
+
+Is there a significant difference in weight between male and female juvenile hares?
+
+```{r}
+hare_ttest <- t.test(hare_f, hare_m)
+hare_ttest
+
+cohen.d(hare_f, hare_m, na.rm = TRUE)
+```
+
+Are male hares significantly larger (weight) than female hares?
+
+```{r}
+t.test(hare_m, hare_f, alternative = "greater")
+```
+
 
 ### D. Relationship between juvenile weight & hind foot length
+
+Explore the relationship between juvenile snowshoe hare hind foot length (variable `hindft`, recorded in millimeters), and weight. Include all juvenile hares in the study. Create a final visualization of juvenile hare hind foot length versus weight. Include a figure caption.
+
+```{r}
+juvenile_foot_weight <- bonanza %>% 
+  filter(age == "j") %>% 
+  select(weight, hindft)
+
+ggplot(data = juvenile_foot_weight, aes(x = weight, y = hindft)) +
+  geom_point(color = "cyan4") +
+  labs(x = "Weight (g)", 
+       y = "Hind foot length (mm)",
+       title = "Juvenile hare hind foot length vs. weight") +
+  theme_light() +
+  theme(legend.position = "none") +
+  geom_smooth(method = "lm",
+              color = "black",
+              size = 0.5,
+              fill = "gray10",
+              alpha = 0.5) +
+  ggpubr::stat_regline_equation(label.x = 1300, label.y = 80)
+```
+
+Find Pearson's *r* for correlation: 
+
+In lecture we talked about the coefficient of determination, R^2^, which tells us how much of the variance in the dependent variable is explained by the model. 
+
+We might also want to explore the strength of the correlation (degree of relationship) between two variables which, for two linearly related continuous variables, can be expressed using Pearson's *r*. 
+
+Pearson's *r* ranges in value from -1 (perfectly negatively correlated - as one variable increases the other decreases) to 1 (perfectly positively correlated - as one variable increases the other increases). A correlation of 0 means that there is no degree of relationship between the two variables. 
+
+Typical guidelines look something like this (there's wiggle room in there): 
+
+- *r* = 0: no correlation
+- *r* < |0.3|: weak correlation
+- *r* between |0.3| and |0.7|: moderate correlation
+- *r* > |0.7|: strong correlation
+
+We'll use the `cor.test()` function, adding the two vectors (`flipper_length_mm` and `body_mass_g`) as the arguments. The function reports the Pearson's *r* value, and performs a hypothesis test with null hypothesis that the correlation = 0. 
+
+```{r}
+hare_cor <- cor.test(juvenile_foot_weight$weight, juvenile_foot_weight$hindft)
+
+hare_cor
+```
+
+Here, we see that there is a moderate positive correlation between juvenile hare weight and hind foot length.
+
+**Note**: Once you have a "template" statement, you can just replace `penguins_cor` here with whatever your correlation analysis is stored as! You don't need to recreate the wheel every time! 
+
+
+
+
+
+
+
+
+Once we've decided that a linear relationship makes sense, we'll model it using `lm()`. 
+
+Note that we haven't checked all assumptions yet. That's because a lot of our assumptions for linear regression are based on model *residuals* (e.g. normality & homoscedasticity of residuals), which we can't calculate until after we find the predicted values from the model ($residual = y_{actual} - y_{predicted}$). 
+
+So make the model first: 
+```{r}
+# Linear model:
+hare_lm <- lm(weight ~ hindft, data = juvenile_foot_weight)
+
+# Return the complete overview:
+summary(hare_lm)
+```
+**Check the Week 6 Part 2 lecture video** for information about how to interpret different pieces of this output, but a couple to highlight: 
+
+- Both the intercept and hind foot coefficients are significantly different from zero (not super interesting)
+- The Multiple R^2^ value is 0.2988 - meaning that 29.9% of variance in weight is explained by hind foot length
+
+
+
+
 
 
 ## Summary
@@ -49,6 +318,5 @@ Include a very short summary describing your main findings from your juvenile ha
 
 ## Citations
 
-Include citations (professionally formatted), including the data citation and any other resources that were references in your mini report. 
-
+[Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative.](https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14)
 
